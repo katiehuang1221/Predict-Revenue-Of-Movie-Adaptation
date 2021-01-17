@@ -15,6 +15,8 @@ driver = webdriver.Chrome(chromedriver)
 driver.get("https://www.fictiondb.com/search/search.htm")
 
 def search(author):
+    author_dict={}
+
     driver.get("https://www.fictiondb.com/search/search.htm")
     search_bar = driver.find_element_by_xpath("//input[@name='author'][@type='text']")
     search_bar.clear()
@@ -28,13 +30,20 @@ def search(author):
         elem = driver.find_element_by_link_text(author_r)
         elem.click()
     except:
+        print("can't find author")
         pass
 
-    publication = driver.find_elements_by_xpath("//a[@itemprop='datePublished']")
-    dates = [s.text.split('-') for s in publication]
-    years = [int(y[-1]) for y in dates]
+    try:
+        publication = driver.find_elements_by_xpath("//a[@itemprop='datePublished']")
+        dates = [s.text.split('-') for s in publication]
+        years = [int(y[-1]) for y in dates]
+    except:
+        print("can't find publication")
+        pass
+    
+    author_dict[author] = years
 
-    return years
+    return author_dict
 
 
 def find_years():
