@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 import requests
 from IPython.core.display import display, HTML
 
+# get detailed data from individual movie webpage
+
 def get_movie_detail(soup):
     """
     Getting detailed data from individual movie webpage
@@ -62,17 +64,13 @@ def get_movie_detail(soup):
         if "Production Co:" in line:
             distributor = line.findNext().text.replace(' ','')
 
+        
     # find runtime
-    if soup.find('div', class_="title_wrapper").find('time') is not None:
-        rt = soup.find('div', class_="title_wrapper").find('time').text.replace('\n','').split()
-        hr = "".join(filter(str.isdigit, rt[0]))
-        if len(rt) > 2:
-            min = "".join(filter(str.isdigit, rt[1]))
-        else:
-            min = "0"
-        runtime = int(hr)*60 + int(min)
-    else:
-        runtime = np.nan
+    runtime = np.nan
+    try:
+        runtime = int(soup.find_all('time')[-1].text.strip(' min'))
+    except:
+        pass
         
         
         
