@@ -1,3 +1,5 @@
+import numpy as np
+import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 from IPython.core.display import display, HTML
@@ -150,6 +152,7 @@ def get_movie_detail(soup):
 
 
 
+
 def get_movie_brief(soup):
     """
     Getting brief data from individual movie webpage (for director dictionary)
@@ -192,37 +195,26 @@ def get_movie_brief(soup):
         date = pd.to_datetime(date_pre) ## why is it Timestamp? format ='%d-%B-%Y'
     except:
         pass
-
-    
-#     # find metascorre
-#     if soup.find('div',class_="metacriticScore score_favorable titleReviewBarSubItem") is not None:
-#         meta = int(soup.find('div',class_="metacriticScore score_favorable titleReviewBarSubItem").text.strip('\n'))
-#     else:
-#         meta = np.nan
-        
-        
-#     # find plot keywords
-#     keyword_list=[]
-#     for keywords in soup.find('div', class_="article", id="titleStoryLine").\
-#     find('div', class_="see-more inline canwrap").find_all('a')[:-1]:
-#         keyword_list.append(keywords.text.strip(' '))
         
     
     
     # find budget, opening weekend USA, gross USA, cumulative worldwide gross
     # assign default value:
     budget, opening, gross_usa, gross_cw, distributor = np.nan, np.nan, np.nan, np.nan, np.nan
-    for line in soup.find('div', class_="article", id="titleDetails").find_all('h4'):        
-        if "Budget:" in line:
-            budget = int(''.join(s for s in line.next_sibling if s.isdigit()))
-        if "Opening Weekend USA:" in line:
-            opening = int(''.join(s for s in line.next_sibling if s.isdigit()))
-        if "Gross USA:" in line:
-            gross_usa = int(''.join(s for s in line.next_sibling if s.isdigit()))
-        if "Cumulative Worldwide Gross:" in line:
-            gross_cw = int(''.join(s for s in line.next_sibling if s.isdigit()))
-        if "Production Co:" in line:
-            distributor = line.findNext().text.replace(' ','')
+    try:
+        for line in soup.find('div', class_="article", id="titleDetails").find_all('h4'):        
+            if "Budget:" in line:
+                budget = int(''.join(s for s in line.next_sibling if s.isdigit()))
+            if "Opening Weekend USA:" in line:
+                opening = int(''.join(s for s in line.next_sibling if s.isdigit()))
+            if "Gross USA:" in line:
+                gross_usa = int(''.join(s for s in line.next_sibling if s.isdigit()))
+            if "Cumulative Worldwide Gross:" in line:
+                gross_cw = int(''.join(s for s in line.next_sibling if s.isdigit()))
+            if "Production Co:" in line:
+                distributor = line.findNext().text.replace(' ','')
+    except:
+        pass
 
         
     # find runtime
@@ -267,30 +259,7 @@ def get_movie_brief(soup):
             link_s.pop()
     except:
         pass
-    
-    
-    
-#     # find language
-#     language= np.nan
-#     t= []
-#     matching = []
-#     for div in soup.find('div', class_="article", id="titleDetails").find_all('div'):
-#         t.append(div.text.replace('\n','').replace(' ',''))
-    
-#     matching = [s for s in t if 'Language:' in s]
-#     language = matching[0].replace(':',' ').replace('|',' ').split(' ')[1:]
-    
-    
-#     # find country
-#     country= np.nan
-#     t= []
-#     matching = []
-#     for div in soup.find('div', class_="article", id="titleDetails").find_all('div'):
-#         t.append(div.text.replace('\n','').replace(' ',''))
-    
-#     matching = [s for s in t if 'Country:' in s]
-#     country = matching[0].replace(':',' ').replace('|',' ').split(' ')[1:]
-    
+        
         
     movie_dict = dict(zip(headers, [director,
                                     title,
