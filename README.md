@@ -1,5 +1,3 @@
-# onl_ds5_project_2
-
 # Project 2: Regression - Adapting to Succeed?
 ###### Weeks 2 and 3
 
