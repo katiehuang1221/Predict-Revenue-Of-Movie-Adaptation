@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 from bs4 import BeautifulSoup
 import requests
 import time, os
@@ -112,3 +114,52 @@ def search(author):
     author_dict[author] = years
 
     return author_dict
+
+
+
+
+
+def google(keyword,date):
+    driver.get("https://www.google.com")
+    search_bar = driver.find_element_by_xpath("//input[@name='q'][@type='text']")
+    search_bar.clear()
+    search_bar.send_keys(keyword + ' before:' + date)
+#     print(keyword + ' before:' + date)
+    search_bar.send_keys(Keys.RETURN)
+    time.sleep(2)
+    
+    
+    # Set default value of result
+    result = np.nan
+    # Find search stats before the given date
+    try:
+        for element in driver.find_elements_by_xpath("//div[@id='result-stats']"):
+            result = (int(element.text.split()[1].replace(',','')))
+    except:
+        pass
+#     print(result)
+    return result
+
+# Added sleep time in between actions
+def book_google(book,author,date):
+    
+    title = book
+    date = date
+    
+    book_dict={}
+    
+    headers = ["title","release_date","title_search","search_fiction_book","book_popularity",\
+               "author_search","search_fiction_author","author_popularity"]
+
+    book_result = google(book + ' ' + author, date)
+    novel_result = google("novel recommendation", date)
+    book_pop = round(book_result / novel_result,2)
+    
+    author_result = google(author,date)
+    authors_result = google("fiction author", date)
+    author_pop = round(author_result / authors_result,4)
+    
+    book_dict = dict(zip(headers,[title,date,book_result,novel_result,book_pop,author_result,authors_result,author_pop]))
+    
+
+    return book_dict
