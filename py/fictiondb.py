@@ -163,3 +163,26 @@ def book_google(book,author,date):
     
 
     return book_dict
+
+
+def book_google2(book,author,date,genre):
+    
+    title = book
+    
+    book_dict={}
+    
+    headers = ["title","release_date","genre","title_search","search_fiction_book",\
+               "author_search","search_fiction_author","book_popularity","author_popularity"]
+
+    book_result = google(book + ' ' + author, date)
+    novel_result = google("novel " + ' '.join(genre), date)
+    book_pop = round(book_result / novel_result,2)
+    
+    author_result = google(author,date)
+    authors_result = google("fiction author", date)
+    author_pop = round(author_result / authors_result,4)
+    
+    book_dict = dict(zip(headers,[title,date,genre, book_result,novel_result,author_result,authors_result,book_pop,author_pop]))
+    
+
+    return book_dict
