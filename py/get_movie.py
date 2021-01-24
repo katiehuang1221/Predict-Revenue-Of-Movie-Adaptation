@@ -4,37 +4,69 @@ from bs4 import BeautifulSoup
 import requests
 from IPython.core.display import display, HTML
 
+"""
+Functions for gettig movie/director/actor info on IMDb.
+1. get_movie_detail(soup)
+2. get_movie_brief(soup)
+"""
+
 # get detailed data from individual movie webpage
 
 def get_movie_detail(soup):
     """
-    Getting detailed data from individual movie webpage
+    Getting detailed data from individual movie webpage.
+    Input: soup of movie page.
+    Ouput: movie_dict
     """
     
     headers=['movie_title', 'rating', 'vote', 'certificate', 'genre', 'release_date', 'metascore', 'keywords','budget',\
-            'opening_weekend_usa','gross_usa','gross_world','runtime','director','link_d','writer','link_w',\
-             'star','link_s','distributor','language','country']
+            'opening_weekend_usa','gross_usa','gross_world','runtime',\
+             'distributor','language','country',\
+             'director','writer','star',\
+             'link_d','link_w','link_s']
     
     # find movie title
     title = " ".join(soup.find('h1').text.split()[:-1]) ## problem?
     
     # find rating
-    rating = float(soup.find('span',attrs={'itemprop':'ratingValue'}).text)
+#     rating = float(soup.find('span',attrs={'itemprop':'ratingValue'}).text)
+    if soup.find('span',attrs={'itemprop':'ratingValue'}) is not None:
+        rating = float(soup.find('span',attrs={'itemprop':'ratingValue'}).text)
+    else:
+        rating = np.nan
     
     # find vote (rating count)
-    vote = int(soup.find('span',attrs={'itemprop':'ratingCount'}).text.replace(',',''))
+#     vote = int(soup.find('span',attrs={'itemprop':'ratingCount'}).text.replace(',',''))
+    if soup.find('span',attrs={'itemprop':'ratingCount'}) is not None:
+        vote = int(soup.find('span',attrs={'itemprop':'ratingCount'}).text.replace(',',''))
+    else:
+        vote = np.nan
     
     # find content rating
-    certificate = soup.find('div', class_="subtext").text.split()[0]
+#     certificate = soup.find('div', class_="subtext").text.split()[0]
+    if soup.find('div', class_="subtext") is not None:
+        certificate = soup.find('div', class_="subtext").text.split()[0]
+    else:
+        certificate = np.nan
     
     # find list of genre
     genre_list=[]
-    for genres in soup.find('div', class_="subtext").find_all('a')[:-1]:
-        genre_list.append(genres.text)
+    try:
+        for genres in soup.find('div', class_="subtext").find_all('a')[:-1]:
+            genre_list.append(genres.text)
+    except:
+        pass
+                 
         
     # find release date
-    date_pre = soup.find('div', class_="subtext").find_all('a')[-1].text.split('(')[0]
-    date = pd.to_datetime(date_pre) ## why is it Timestamp? format ='%d-%B-%Y'
+    date = np.nan
+    try:
+                 
+        date_pre = soup.find('div', class_="subtext").find_all('a')[-1].text.split('(')[0]
+        date = pd.to_datetime(date_pre) ## why is it Timestamp? format ='%d-%B-%Y'
+                 
+    except:
+        pass
     
     # find metascorre
     if soup.find('div',class_="metacriticScore score_favorable titleReviewBarSubItem") is not None:
@@ -45,13 +77,15 @@ def get_movie_detail(soup):
         
     # find plot keywords
     keyword_list=[]
-    for keywords in soup.find('div', class_="article", id="titleStoryLine").\
-    find('div', class_="see-more inline canwrap").find_all('a')[:-1]:
-        keyword_list.append(keywords.text.strip(' '))
-        
+    try:
+        for keywords in soup.find('div', class_="article", id="titleStoryLine").\
+        find('div', class_="see-more inline canwrap").find_all('a')[:-1]:
+            keyword_list.append(keywords.text.strip(' '))
+    except:
+        pass
     
     
-    # find budget, opening weekend USA, gross USA, cumulative worldwide gross
+    # find budget, opening weekend USA, gross USA, cumulative worldwide gross, distributor
     # assign default value:
     budget, opening, gross_usa, gross_cw, distributor = np.nan, np.nan, np.nan, np.nan, np.nan
     for line in soup.find('div', class_="article", id="titleDetails").find_all('h4'):        
@@ -66,17 +100,14 @@ def get_movie_detail(soup):
         if "Production Co:" in line:
             distributor = line.findNext().text.replace(' ','')
 
-        
+
     # find runtime
     runtime = np.nan
     try:
         runtime = int(soup.find_all('time')[-1].text.strip(' min'))
     except:
         pass
-        
-        
-        
-        
+
     # find director
     director= np.nan
     director = soup.find('div',class_="credit_summary_item").find('a').text
@@ -93,7 +124,7 @@ def get_movie_detail(soup):
         
     # find star
     star = np.nan
-    star_line = soup.find_all('div',class_="credit_summary_item")[2].find_all('a')
+    star_line = soup.find_all('div',class_="credit_summary_item")[-1].find_all('a')
     link_s = [s.get('href') for s in star_line]
     star = [s.text for s in star_line]
     if 'See full cast & crew' in star:
@@ -123,7 +154,8 @@ def get_movie_detail(soup):
     matching = [s for s in t if 'Country:' in s]
     country = matching[0].replace(':',' ').replace('|',' ').split(' ')[1:]
     
-        
+    
+    
     movie_dict = dict(zip(headers, [title,
                                     rating,
                                     vote,
@@ -137,18 +169,18 @@ def get_movie_detail(soup):
                                    gross_usa,
                                    gross_cw,
                                    runtime,
+                                    distributor,
+                                    language,
+                                    country,
                                    director,
-                                    link_d,
                                     writer,
+                                   star,
+                                   link_d,
                                     link_w,
-                                    star,
                                     link_s,
-                                   distributor,
-                                   language,
-                                   country]))
+                                   ]))
     
     return movie_dict
-
 
 
 
@@ -156,6 +188,8 @@ def get_movie_detail(soup):
 def get_movie_brief(soup):
     """
     Getting brief data from individual movie webpage (for director dictionary)
+    Input: soup of director/actor page.
+    Ouput: movie_dict
     """
     
     headers=['director','title','year','rating','vote','genre_list','budget','opening','gross_usa',\

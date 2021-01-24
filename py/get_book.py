@@ -3,10 +3,10 @@ import numpy as np
 # Try fixing missing value problem
 # Try fixing first published year problem (if there's only first published year)
 
-def get_bookdata(book):
+def get_book_data(book):
     """
-    get bookdata from individual book webpage (goodreads)
-    input(book) = book_soup
+    Input: book = soup in book_soup_list
+    Output: book_dict
     """
     
     headers=['book_title', 'author', 'rating_value', 'rating_count', 'review_count', 'page', 'year']
